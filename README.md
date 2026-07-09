@@ -32,6 +32,7 @@ API Gateway adalah **satu-satunya pintu masuk** untuk seluruh request dari klien
 | `/upload/*` | Auth Service `:3001/upload/*` | ❌ |
 | `/football/*` | Football Service `:3002/football/*` | ✅ JWT |
 | `/forum/*` | Forum Service `:3003/forum/*` | ✅ JWT |
+| `/report/*` | Report Service `:3005/report/*` | ✅ JWT |
 
 > ℹ️ Route `/auth/*` dan `/upload/*` sengaja **tidak** memerlukan JWT karena digunakan untuk proses login, register, dan verifikasi OTP.
 
@@ -39,7 +40,7 @@ API Gateway adalah **satu-satunya pintu masuk** untuk seluruh request dari klien
 
 ## 🔐 Cara Kerja Autentikasi
 
-Untuk setiap request ke `/football/*` dan `/forum/*`, gateway melakukan:
+Untuk setiap request ke `/football/*`, `/forum/*`, dan `/report/*`, gateway melakukan:
 
 ```
 Request masuk
@@ -59,7 +60,7 @@ Cek header Authorization: Bearer <token>
                         Teruskan ke service tujuan dengan header tambahan:
                           x-user-id: <userId>
                           x-user-role: <role>
-                          x-user-email: <email>       ← football route
+                          x-user-email: <email>       ← football & report route
                           x-user-username: <username> ← forum route
                           x-internal-secret: <secret>
 ```
@@ -70,7 +71,7 @@ Service internal kemudian memvalidasi `x-internal-secret` untuk memastikan reque
 
 ## 🛡️ Rate Limiting
 
-Diterapkan pada route terproteksi (`/football/*` dan `/forum/*`):
+Diterapkan pada route terproteksi (`/football/*`, `/forum/*`, dan `/report/*`):
 
 | Parameter | Nilai |
 |---|---|
@@ -98,6 +99,7 @@ api-gateway/
 │   │   ├── auth.route.ts      # Proxy semua /auth/* → auth-service
 │   │   ├── football.route.ts  # Proxy semua /football/* → football-service (+ auth)
 │   │   ├── forum.route.ts     # Proxy semua /forum/* → forum-service (+ auth)
+│   │   ├── report.route.ts    # Proxy semua /report/* → report-service (+ auth)
 │   │   └── upload.route.ts    # Proxy semua /upload/* → auth-service
 │   └── utils/
 │       ├── proxy.ts  # Fungsi helper untuk meneruskan request HTTP
@@ -126,6 +128,7 @@ cp .env.example .env
 | `AUTH_SERVICE_URL` | `http://auth-service:3001` | URL auth service (nama container Docker) |
 | `FOOTBALL_SERVICE_URL` | `http://football-service:3002` | URL football service |
 | `FORUM_SERVICE_URL` | `http://forum-service:3003` | URL forum service |
+| `REPORT_SERVICE_URL` | `http://report-service:3005` | URL report service |
 
 > ⚠️ **Penting:** Saat development lokal (tanpa Docker), gunakan `http://localhost:PORT` sebagai nilai URL service.
 
@@ -135,7 +138,7 @@ cp .env.example .env
 
 ### Prasyarat
 - [Bun](https://bun.sh/) v1.x terinstal
-- Semua microservice yang dituju harus sudah berjalan (auth, football, forum)
+- Semua microservice yang dituju harus sudah berjalan (auth, football, forum, report)
 
 ### Development (hot-reload)
 
@@ -194,13 +197,13 @@ curl http://localhost:3000/health
 ## ❓ Troubleshooting
 
 **`404 Not Found` saat hit endpoint?**
-> Pastikan microservice yang dituju sudah berjalan. Cek juga nilai `AUTH_SERVICE_URL`, `FOOTBALL_SERVICE_URL`, `FORUM_SERVICE_URL` di `.env` — harus menunjuk ke host dan port yang benar.
+> Pastikan microservice yang dituju sudah berjalan. Cek juga nilai `AUTH_SERVICE_URL`, `FOOTBALL_SERVICE_URL`, `FORUM_SERVICE_URL`, `REPORT_SERVICE_URL` di `.env` — harus menunjuk ke host dan port yang benar.
 
 **Token valid tapi dapat `401 Unauthorized`?**
 > Pastikan nilai `JWT_SECRET` di file `.env` ini **persis sama** dengan `JWT_SECRET` yang digunakan auth-service saat menandatangani token.
 
 **Request internal gagal dengan `403 Forbidden`?**
-> Cek nilai `INTERNAL_SECRET` — harus identik di semua service (gateway, auth, football, forum, notification).
+> Cek nilai `INTERNAL_SECRET` — harus identik di semua service (gateway, auth, football, forum, report, notification).
 
 **`429 Too Many Requests`?**
 > Kamu sudah melampaui batas 100 request/menit. Tunggu 60 detik atau sesuaikan nilai `limit` dan `windowMs` di `rate-limit.middleware.ts`.
@@ -217,4 +220,5 @@ Repositori ini adalah bagian dari ekosistem **Football Community App Backend**:
 | [auth-service](#) | Autentikasi, profil, biometric |
 | [football-service](#) | Data liga, tim, jadwal |
 | [forum-service](#) | Post, komentar, voting |
+| [report-service](#) | Manajemen laporan dan moderasi |
 | [notification-service](#) | Email OTP via RabbitMQ |

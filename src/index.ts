@@ -5,7 +5,7 @@ import authRoute from "./routes/auth.route"
 import footballRoute from "./routes/football.route"
 import uploadRoute from "./routes/upload.route"
 import forumRoute from "./routes/forum.route"
-// import notificationRoute from "./routes/notification.route"
+import reportRoute from "./routes/report.route"
 
 import { loggerMiddleware } from "./middlewares/logger.middleware"
 import { authMiddleware } from "./middlewares/auth.middleware"
@@ -35,7 +35,7 @@ app.route("/auth", authRoute)
 app.route("/football", footballRoute)
 app.route("/upload", uploadRoute)
 app.route("/forum", forumRoute)
-// app.route("/notification", notificationRoute)
+app.route("/reports", reportRoute)
 
 export default {
   port: 3000,

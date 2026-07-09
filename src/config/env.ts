@@ -12,6 +12,10 @@ export const env = {
   forumServiceUrl:
     process.env.FORUM_SERVICE_URL || "",
 
+  reportServiceUrl:
+    process.env.REPORT_SERVICE_URL || "",
+
+
   notificationServiceUrl:
     process.env.NOTIFICATION_SERVICE_URL || "",
 
